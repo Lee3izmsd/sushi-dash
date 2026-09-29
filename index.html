@@ -321,6 +321,11 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
 #loading, #err { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 0 24px; font: 900 16px/1.6 var(--ui); color: var(--gold-hi); background: var(--ink); }
 #err { color: var(--rice); }
 @media (prefers-reduced-motion: reduce) { .toast, #banner .in, .ability.pop, #prompt .gesture { animation-duration: .01s !important; } }
+@media (max-aspect-ratio: 5/4) {
+  #title .logo { position: absolute; top: calc(var(--safe-t) + 30px); left: 96px; right: 10px; }
+  #title .logo h1 { font-size: clamp(32px, 10.5vw, 60px); }
+  #title .logo p { letter-spacing: .5em; }
+}
 @media (min-aspect-ratio: 5/4) {
   .tagline { left: 28px; }
   #title { align-items: flex-end; padding-right: max(20px, 5vw); background: linear-gradient(90deg, rgba(20, 12, 7, 0) 35%, rgba(20, 12, 7, .85) 75%); }
@@ -579,6 +584,7 @@ function curvatureAt(curves, s) {
 }
 
 const isPickup = k => k === 'goma' || k === 'neta' || k === 'drop';
+const isMarker = k => k === 'rollcup';
 
 // ===== コース生成 =====
 function generateCourse(seed, opts) {
@@ -682,7 +688,7 @@ function generateCourse(seed, opts) {
     } },
     { id: 'single', len: 0, w: d => lerp(1.3, 0.4, d), build: (s, v, d) => {
       const lane = RI(-1, 1);
-      const k = pick(d < 0.25 ? ['cup', 'bottle', 'plates', 'noren', 'nori'] : ['cup', 'bottle', 'plates', 'noren', 'nori', 'wasabi']);
+      const k = pick(d < 0.08 ? ['cup', 'bottle', 'plates', 'noren', 'nori'] : ['cup', 'bottle', 'plates', 'noren', 'nori', 'wasabi']);
       add(k, s, lane);
     } },
     { id: 'double', len: 0, w: d => lerp(0.5, 1.1, d), build: (s) => {
@@ -719,7 +725,12 @@ function generateCourse(seed, opts) {
       const ks = shuffle(['bottle', 'cup', 'noren']);
       [-1, 0, 1].forEach((l, i) => add(ks[i], s, l));
     } },
-    { id: 'wasabi', len: 0.5, w: d => (d > 0.2 ? 0.5 : 0), build: (s, v) => {
+    // 転がってくる湯のみ：近づくと転がり出し、レーンを変えながら迫ってくる
+    { id: 'roller', len: 0, w: d => (d > 0.1 ? 0.6 : 0), build: (s) => {
+      add('rollcup', s, RI(-1, 1), { big: rnd() < (ST.id === 1 ? 0.35 : ST.id === 2 ? 0.5 : 0.6) });
+      if (rnd() < 0.4 + ST.id * 0.1) add('rollcup', s + 12, RI(-1, 1), { big: false });
+    } },
+    { id: 'wasabi', len: 0.5, w: d => (d > 0.1 ? 0.75 : 0), build: (s, v) => {
       add('wasabi', s, RI(-1, 1));
       if (rnd() < 0.5) add('wasabi', s + 0.5 * v, RI(-1, 1));
     } },
@@ -976,7 +987,7 @@ class Game {
     const lx = lane * C.LANE_W;
     const reach = C.P_HALF_W + C.OBS_HALF_W;
     const check = e => {
-      if (e.dead || e.cutPending || isPickup(e.kind)) return false;
+      if (e.dead || e.cutPending || isPickup(e.kind) || isMarker(e.kind)) return false;
       const def = OBS[e.kind];
       if (!def || def.soft) return false;
       const gap = e.s - def.halfD - (p.s + C.P_HALF_D);
@@ -1081,6 +1092,7 @@ class Game {
     this.updateMovers(h);
     this.updateWasabi(h);
     this.updateBottles();
+    this.updateRollers();
     this.updateCuts(h);
     this.updateStrikes(h);
     this.collide();
@@ -1477,6 +1489,17 @@ class Game {
         }
       }
       e.x += (e.lanes[0] * C.LANE_W - e.x) * (1 - Math.exp(-10 * h));
+    }
+  }
+
+  updateRollers() {
+    const p = this.p;
+    for (let i = this.lo; i < this.ents.length; i++) {
+      const e = this.ents[i];
+      if (e.s > p.s + 70) break;
+      if (e.kind !== 'rollcup' || e.dead) continue;
+      e.dead = true;
+      this.addMover(e.big ? 'bigcup' : 'cup', e.s, [e.lanes[0]], -8, { roll: true });
     }
   }
 
@@ -4140,7 +4163,7 @@ function syncViews(g, dt) {
   for (let i = g.lo; i < g.ents.length; i++) {
     const e = g.ents[i];
     if (e.s - ps > VIEW) break;
-    if (e.kind === 'goma' || e.dead || views.has(e.id)) continue;
+    if (e.kind === 'goma' || e.kind === 'rollcup' || e.dead || views.has(e.id)) continue;
     if (e.s - ps < -10) continue;
     spawnView(e);
   }
@@ -4577,7 +4600,7 @@ function renderStages() {
     b.innerHTML = '<em></em><b></b><span></span>';
     b.querySelector('em').textContent = 'STAGE ' + n;
     b.querySelector('b').textContent = STAGE_INFO[n].name;
-    b.querySelector('span').textContent = locked ? `STAGE ${n - 1} でVIPに届くと解放` : STAGE_INFO[n].sub;
+    b.querySelector('span').textContent = locked ? `STAGE ${n - 1} クリアで解放` : STAGE_INFO[n].sub;
     b.disabled = locked;
     b.addEventListener('click', () => {
       if (locked || curStage === n) return;
@@ -5146,7 +5169,7 @@ function startGoal(res) {
   store.set('plays', store.get('plays', 0) + 1);
   if (res.retired) { startKO(res); return; }
   res.rewards = grantRewards(res.grade, res.stage);
-  if (res.stage < 3 && !store.get('unlock' + (res.stage + 1), false)) { store.set('unlock' + (res.stage + 1), true); res.unlocked = res.stage + 1; }
+  if (res.cleared && res.stage < 3 && !store.get('unlock' + (res.stage + 1), false)) { store.set('unlock' + (res.stage + 1), true); res.unlocked = res.stage + 1; }
   if (res.stage === 3 && res.cleared && !store.get('cleared3', false)) { store.set('cleared3', true); res.slotUp = true; }
   goal = { t: 0, res, s0: game.p.s, x0: game.p.x, thrown: 0, landed: 0, flying: [], next: 0, gap: 0.26, phase: 'approach', phaseT: 0, ts: 1, moneyLeft: 0, bundleLeft: 0, tipShown: 0, ownPlayer: false, dive: null, kind: res.stage, stack: [], loaded: [] };
   const list = res.stockList;
