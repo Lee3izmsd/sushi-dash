@@ -601,7 +601,7 @@ const STAGES = {
   1: { id: 1, name: '金箔の大広間', sub: 'ストレート', curveFirst: [140, 190], curveGap: [100, 180], curveLen: [75, 120], curveK: [0.0038, 0.0058], speedMul: 1, sharpK: 99, innerRoute: false, shamoji: 0.3, par: 50, swerve: 0.35, spill: 0.25, wasabiLock: 0.65, moverLock: 0.7,
     events: ['hashi', 'shoyu', 'nori', 'yunomi', 'sara', 'wasabi', 'houchou'] },
   // 急なS字カーブが続く。ドリフトしないと寿司が振り落とされる
-  2: { id: 2, name: '夜桜の料亭', sub: 'S字カーブ', curveFirst: [70, 90], curveGap: [22, 45], curveLen: [100, 150], curveK: [0.0105, 0.017], speedMul: 1.03, sharpK: 0.0125, innerRoute: true, shamoji: 0.25, par: 47.5, alt: 0.75, swerve: 0.5, spill: 0.35, wasabiLock: 0.58, moverLock: 0.62,
+  2: { id: 2, name: '夜桜の料亭', sub: 'S字カーブ', curveFirst: [70, 90], curveGap: [22, 45], curveLen: [100, 150], curveK: [0.0105, 0.017], speedMul: 1.03, sharpK: 0.0125, minShamoji: 2, innerRoute: true, shamoji: 0.25, par: 47.5, alt: 0.75, swerve: 0.5, spill: 0.35, wasabiLock: 0.58, moverLock: 0.62,
     events: ['hanabi', 'koi', 'chochin'] },
   // 同じ向きにぐるぐる回り続けるらせん。遠心力で外へ押し出される
   3: { id: 3, name: '天空の回転寿司タワー', sub: 'らせん・遠心力', curveFirst: [55, 70], curveGap: [6, 14], curveLen: [170, 260], curveK: [0.011, 0.016], speedMul: 1.1, sharpK: 99, innerRoute: false, shamoji: 0.45, par: 44.5, alt: 0.15, centrifugal: true, swerve: 0.65, spill: 0.45, wasabiLock: 0.5, moverLock: 0.55, gap: 0.9, netaGap: 0.75, discs: true, holes: true,
@@ -693,6 +693,16 @@ function generateCourse(seed, opts) {
 
   // --- パターン ---
   const TALL = ['bottle', 'plates', 'bottle'];
+  // しゃもじ＋空中のガリの弧＋頂上の金のハート
+  const placeShamoji = (s, v, lane) => {
+    add('shamoji', s, lane);
+    const air = 2 * C.SHAMOJI_V / C.GRAVITY;
+    for (let i = 1; i <= 9; i++) {
+      const t = air * i / 10, y = C.SHAMOJI_V * t - C.GRAVITY * t * t / 2;
+      if (i === 5) add('goma', s + v * t, lane, { y: y - 0.2, gold: true });
+      else goma(s + v * t, lane, y - 0.1);
+    }
+  };
   const holeArc = (s, lane, v) => { for (let i = -3; i <= 3; i++) { const t = i * 0.08; goma(s + v * t, lane, 0.6 + Math.max(0, 1.4 - 36 * t * t)); } };
   const P = [
     // 全レーンの穴：タイミングよくジャンプ
@@ -716,17 +726,8 @@ function generateCourse(seed, opts) {
       const gl = [-1, 0, 1].filter(l => l !== tall)[RI(0, 1)];
       for (let i = -3; i <= 3; i++) goma(s + i * 2, gl, 0.55 + 1.35 * (1 - (i / 3.2) * (i / 3.2)));
     } },
-    // しゃもじ：すくい上げられて大ジャンプ。放物線の頂点に金ガリ
-    { id: 'shamoji', len: 1.35, w: d => (d > 0.08 ? ST.shamoji : 0), build: (s, v) => {
-      const lane = RI(-1, 1);
-      add('shamoji', s, lane);
-      const air = 2 * C.SHAMOJI_V / C.GRAVITY;
-      for (let i = 1; i <= 9; i++) {
-        const t = air * i / 10, y = C.SHAMOJI_V * t - C.GRAVITY * t * t / 2;
-        if (i === 5) add('goma', s + v * t, lane, { y: y - 0.2, gold: true });
-        else goma(s + v * t, lane, y - 0.1);
-      }
-    } },
+    // しゃもじ：すくい上げられて大ジャンプ。放物線の頂点に金のハート
+    { id: 'shamoji', len: 1.35, w: d => (d > 0.08 ? ST.shamoji : 0), build: (s, v) => placeShamoji(s, v, RI(-1, 1)) },
     { id: 'single', len: 0, w: d => lerp(1.3, 0.4, d), build: (s, v, d) => {
       const lane = RI(-1, 1);
       const k = pick(d < 0.08 ? ['cup', 'bottle', 'plates', 'noren', 'nori'] : ['cup', 'bottle', 'plates', 'noren', 'nori', 'wasabi']);
@@ -869,6 +870,19 @@ function generateCourse(seed, opts) {
     }
   }
 
+  // 最低回数に足りなければ、大型イベント以外の空き場所にランダムで追加（踏み切りと着地が空いている所）
+  if (ST.minShamoji) {
+    const air = 2 * C.SHAMOJI_V / C.GRAVITY;
+    let have = ents.filter(e => e.kind === 'shamoji').map(e => e.s);
+    for (let tries = 0; have.length < ST.minShamoji && tries < 300; tries++) {
+      const s = R(150, C.COURSE_LEN - 120), v = speedAt(s) * ST.speedMul, land = s + v * air;
+      if (inEvent(s, 15) || inEvent(land, 10) || have.some(h => Math.abs(h - s) < 250)) continue;
+      const lane = RI(-1, 1);
+      if (blockedNear(s, lane, 6) || blockedNear(land, lane, 8)) continue;
+      placeShamoji(s, v, lane);
+      have.push(s);
+    }
+  }
   ents.sort((a, b) => a.s - b.s);
   return { seed, ents, events, curves, nextId: nid };
 }
