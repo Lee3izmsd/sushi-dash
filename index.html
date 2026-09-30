@@ -276,21 +276,36 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
 #showcase span { font: 900 12px/1 var(--ui); color: var(--muted); text-shadow: 0 1px 3px #000; }
 #feed.fest .label, #feed.fest .bar, #feed.fest .n { display: none; }
 .tipline small { display: block; font: 900 12px/1.4 var(--ui); color: #ffb0cc; }
-#guideBtn { height: 46px; padding: 0 14px; border-radius: 23px; border: 1px solid var(--gold); background: rgba(20, 12, 7, .75); font: 900 13px/1 var(--ui); color: var(--gold-hi); white-space: nowrap; }
-#guide { justify-content: flex-end; padding: 0; background: rgba(14, 8, 4, .55); }
-#guide .sheet { background: linear-gradient(180deg, #2a1a0e, #170e07); border-top: 2px solid var(--gold); border-radius: 22px 22px 0 0; padding: 16px 16px calc(var(--safe-b) + 16px); max-height: 88%; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box; }
-#guide h3 { margin: 8px 0 0; font: 18px/1.2 var(--display); color: var(--gold-hi); border-bottom: 1px solid rgba(231, 181, 78, .35); padding-bottom: 4px; }
-#guide h3.bad { color: #ff8a6a; }
-#guide h3 small { font: 700 11px/1 var(--ui); color: var(--muted); margin-left: 8px; }
-.g-rule { margin: 0; font: 700 13px/1.6 var(--ui); color: var(--rice); background: rgba(0, 0, 0, .3); border-radius: 10px; padding: 8px 10px; }
-.g-rule b { color: var(--gold-hi); }
 .g-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
 .g-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
-.g-row img { width: 58px; height: 44px; object-fit: contain; flex: none; }
-.g-row b { display: block; font: 900 14px/1.3 var(--ui); color: var(--rice); }
-#guide .btn-sub { flex: none; min-height: 46px; margin-top: 8px; }
-.g-row span { display: block; font: 700 12px/1.45 var(--ui); color: var(--muted); }
 @media (min-width: 520px) { .g-list { grid-template-columns: 1fr 1fr; } }
+/* お品書き：和紙の品書き */
+#guideBtn { position: relative; flex: none; height: 54px; padding: 0 14px; border-radius: 6px; border: 2px solid #b8231c; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  background: linear-gradient(180deg, #fbf5e6, #efe3c6); box-shadow: 0 3px 0 #7a1510, 0 6px 14px rgba(0,0,0,.45), inset 0 0 0 3px #fbf5e6, inset 0 0 0 4px rgba(184,35,28,.5); }
+#guideBtn b { font: 17px/1 var(--display); color: #1a0e08; letter-spacing: .04em; white-space: nowrap; }
+#guideBtn small { font: 900 9px/1 var(--ui); color: #b8231c; letter-spacing: .2em; white-space: nowrap; }
+#guideBtn::after { content: "寿"; position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%; background: #c8281c; color: #fbf5e6; font: 11px/20px var(--display); text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+#guideBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #7a1510, inset 0 0 0 3px #fbf5e6, inset 0 0 0 4px rgba(184,35,28,.5); }
+#guide { justify-content: flex-end; padding: 0; background: rgba(14, 8, 4, .6); }
+#guide .sheet { --ink: #1a0e08; --beni: #b8231c; color: var(--ink); width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box; max-height: 90%; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 18px 18px calc(var(--safe-b) + 18px); border-radius: 14px 14px 0 0; border-top: 6px solid #3a1a0c;
+  background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.6), transparent 40%), repeating-linear-gradient(90deg, rgba(120,90,50,.035) 0 2px, transparent 2px 7px), repeating-linear-gradient(0deg, rgba(120,90,50,.03) 0 1px, transparent 1px 11px), #f6ecd6;
+  box-shadow: inset 0 0 0 6px #f6ecd6, inset 0 0 0 7px rgba(184,35,28,.55), 0 -8px 30px rgba(0,0,0,.5); }
+.menu-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 3px double var(--beni); }
+.menu-head b { font: 30px/1 var(--display); letter-spacing: .12em; color: var(--ink); }
+.menu-head span { margin-left: auto; font: 900 12px/1 var(--ui); color: var(--beni); letter-spacing: .2em; }
+.hanko { width: 34px; height: 34px; border-radius: 6px; background: var(--beni); color: #f6ecd6; font: 20px/34px var(--display); font-style: normal; text-align: center; transform: rotate(-8deg); box-shadow: 0 0 0 2px #f6ecd6, 0 0 0 3px var(--beni); }
+#guide h3 { margin: 10px 0 2px; display: flex; align-items: baseline; gap: 8px; font: 20px/1.2 var(--display); color: var(--ink); }
+#guide h3 em { font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: var(--beni); color: #f6ecd6; font: 14px/26px var(--display); text-align: center; flex: none; align-self: center; }
+#guide h3.bad { color: #7a1510; }
+#guide h3 small { font: 700 11px/1.3 var(--ui); color: #7a5a3a; }
+.g-rule { margin: 4px 0 0; font: 700 13px/1.7 var(--ui); color: var(--ink); background: rgba(184,35,28,.07); border-left: 4px solid var(--beni); padding: 8px 10px; }
+.g-rule b { color: var(--beni); }
+.g-row { border-bottom: 1px dashed rgba(90,60,30,.35); padding: 5px 0; }
+.g-row img { width: 58px; height: 44px; object-fit: contain; flex: none; filter: drop-shadow(0 2px 2px rgba(60,30,10,.25)); }
+.g-row b { display: block; font: 900 15px/1.3 var(--ui); color: var(--ink); }
+.g-row span { display: block; font: 700 12px/1.5 var(--ui); color: #5a4028; }
+.menu-close { flex: none; min-height: 50px; margin-top: 12px; border-radius: 8px; background: var(--beni); color: #f6ecd6; font: 16px/1 var(--display); letter-spacing: .1em; box-shadow: 0 3px 0 #6a100a; }
 .title-foot { display: flex; align-items: center; justify-content: space-between; width: min(100%, 460px); gap: 12px; }
 .best { font: 700 12px/1.4 var(--ui); color: var(--muted); }
 .best b { font: 18px/1 var(--display); color: var(--gold-hi); }
@@ -424,7 +439,7 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
     </div>
     <div class="title-foot">
       <div class="best" id="best">ネタを集めて寿司に変身。<br>VIPの満腹ノルマ <b>8</b> 貫を届けよう。</div>
-      <div class="title-btns"><button id="guideBtn" aria-label="あそびかた">あそびかた</button><button id="soundBtn" aria-label="サウンド切り替え">音 ON</button></div>
+      <div class="title-btns"><button id="guideBtn" aria-label="お品書き（あそびかた）"><b>お品書き</b><small>あそびかた</small></button><button id="soundBtn" aria-label="サウンド切り替え">音 ON</button></div>
     </div>
   </section>
 
@@ -440,12 +455,12 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
 
   <section id="guide" class="overlay" hidden>
     <div class="sheet">
-      <div class="sheet-head"><b>お品書き</b><span>あそびかた</span></div>
+      <div class="menu-head"><i class="hanko">寿</i><b>お品書き</b><span>あそびかた</span></div>
       <p class="g-rule">寿司を <b>8貫</b> VIPに届けるとクリア。ライフは <b>3つ</b>（大型イベントをノーダメージで抜けると +1）。寿司の数・種類・残りライフ・タイムで評価が決まる。</p>
-      <h3>ネタ<small>取ると1貫＋変身</small></h3><div class="g-list" id="gNeta"></div>
-      <h3>いいもの</h3><div class="g-list" id="gGood"></div>
-      <h3 class="bad">だめなもの<small>ぶつかるとライフ−1・寿司を少し落とす</small></h3><div class="g-list" id="gBad"></div>
-      <button class="btn-sub" id="guideClose">もどる</button>
+      <h3><em>壱</em>ネタ<small>取ると1貫＋変身</small></h3><div class="g-list" id="gNeta"></div>
+      <h3><em>弐</em>いいもの</h3><div class="g-list" id="gGood"></div>
+      <h3 class="bad"><em>参</em>だめなもの<small>ぶつかるとライフ−1・寿司を少し落とす</small></h3><div class="g-list" id="gBad"></div>
+      <button class="menu-close" id="guideClose">ごちそうさま（もどる）</button>
     </div>
   </section>
 
@@ -1825,7 +1840,8 @@ if (!isTouch) document.body.classList.add('is-desktop');
 // ===== レンダラー =====
 const canvas = $('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isTouch || devicePixelRatio < 2, powerPreference: 'high-performance' });
-let pixelRatio = Math.min(devicePixelRatio || 1, isTouch ? 1.5 : 2);
+const lowEnd = isTouch && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3);
+let pixelRatio = Math.min(devicePixelRatio || 1, lowEnd ? 1 : isTouch ? 1.25 : 2);
 renderer.setPixelRatio(pixelRatio);
 renderer.toneMapping = THREE.NoToneMapping;
 
@@ -2736,7 +2752,7 @@ function wobbleEye(e, dt, kick) {
 
 // lod: 'hi' = プレイヤー / 'lo' = コース上・ストック
 function makeSushi(type, lod, eyesFront) {
-  const hi = lod === 'hi', lite = lod === 'train';
+  const hi = lod === 'hi', lite = lod === 'train' || (lod === 'lo' && isTouch);
   const root = new THREE.Group();
   const body = new THREE.Group(); body.position.y = 0.55; root.add(body);
   const rice = new THREE.Mesh(hi ? G.riceHi : G.riceLo, hi ? M.ricePlayer : M.riceLo);
@@ -4226,7 +4242,7 @@ function syncViews(g, dt) {
       s.root.rotation.z = Math.sin(s.phase * 0.5) * 0.12;
       v.ring.rotation.y += dt * 2;
       v.ring.material.opacity = 0.45 + Math.sin(s.phase) * 0.25;
-      v.obj.visible = dz < 110;
+      v.obj.visible = dz < (isTouch ? 85 : 110);
       if (v.plate) {
         // 名札：近すぎると邪魔なので消し、遠いほど少し大きくして読みやすく
         v.plate.visible = dz > 4 && dz < 80;
@@ -6693,11 +6709,16 @@ function setLiteFx(v) {
 
 let lastT = performance.now();
 let timeScale = 1; // 自動テスト用（通常は1）
+let pausedDrawn = false;
 function frame(now) {
   requestAnimationFrame(frame);
+  const busy = mode === 'play' || mode === 'goal';
+  const minMs = busy ? 1000 / 61 : 1000 / 31;
+  if (now - lastT < minMs - 1.5) return;
   const dt = clamp((now - lastT) / 1000, 0, 0.05) * timeScale;
   lastT = now;
-  if (paused) { renderer.render(scene, camera); return; }
+  if (paused) { if (!pausedDrawn) { renderer.render(scene, camera); pausedDrawn = true; } return; }
+  pausedDrawn = false;
   timeAcc += dt;
   liquidTime.value = timeAcc;
   if (!game) return;
@@ -6742,6 +6763,7 @@ function frame(now) {
 }
 
 // ===== 起動 =====
+if (lowEnd) setLiteFx(true);
 applyPixelMode();
 toTitle();
 $('#loading').hidden = true;
