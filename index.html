@@ -276,6 +276,21 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
 #showcase span { font: 900 12px/1 var(--ui); color: var(--muted); text-shadow: 0 1px 3px #000; }
 #feed.fest .label, #feed.fest .bar, #feed.fest .n { display: none; }
 .tipline small { display: block; font: 900 12px/1.4 var(--ui); color: #ffb0cc; }
+#guideBtn { height: 46px; padding: 0 14px; border-radius: 23px; border: 1px solid var(--gold); background: rgba(20, 12, 7, .75); font: 900 13px/1 var(--ui); color: var(--gold-hi); white-space: nowrap; }
+#guide { justify-content: flex-end; padding: 0; background: rgba(14, 8, 4, .55); }
+#guide .sheet { background: linear-gradient(180deg, #2a1a0e, #170e07); border-top: 2px solid var(--gold); border-radius: 22px 22px 0 0; padding: 16px 16px calc(var(--safe-b) + 16px); max-height: 88%; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box; }
+#guide h3 { margin: 8px 0 0; font: 18px/1.2 var(--display); color: var(--gold-hi); border-bottom: 1px solid rgba(231, 181, 78, .35); padding-bottom: 4px; }
+#guide h3.bad { color: #ff8a6a; }
+#guide h3 small { font: 700 11px/1 var(--ui); color: var(--muted); margin-left: 8px; }
+.g-rule { margin: 0; font: 700 13px/1.6 var(--ui); color: var(--rice); background: rgba(0, 0, 0, .3); border-radius: 10px; padding: 8px 10px; }
+.g-rule b { color: var(--gold-hi); }
+.g-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.g-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+.g-row img { width: 58px; height: 44px; object-fit: contain; flex: none; }
+.g-row b { display: block; font: 900 14px/1.3 var(--ui); color: var(--rice); }
+#guide .btn-sub { flex: none; min-height: 46px; margin-top: 8px; }
+.g-row span { display: block; font: 700 12px/1.45 var(--ui); color: var(--muted); }
+@media (min-width: 520px) { .g-list { grid-template-columns: 1fr 1fr; } }
 .title-foot { display: flex; align-items: center; justify-content: space-between; width: min(100%, 460px); gap: 12px; }
 .best { font: 700 12px/1.4 var(--ui); color: var(--muted); }
 .best b { font: 18px/1 var(--display); color: var(--gold-hi); }
@@ -409,7 +424,7 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
     </div>
     <div class="title-foot">
       <div class="best" id="best">ネタを集めて寿司に変身。<br>VIPの満腹ノルマ <b>8</b> 貫を届けよう。</div>
-      <div class="title-btns"><button id="soundBtn" aria-label="サウンド切り替え">音 ON</button></div>
+      <div class="title-btns"><button id="guideBtn" aria-label="あそびかた">あそびかた</button><button id="soundBtn" aria-label="サウンド切り替え">音 ON</button></div>
     </div>
   </section>
 
@@ -420,6 +435,17 @@ button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
       <div class="items" id="items"></div>
       <button class="gold-row" id="goldRow" hidden></button>
       <button class="btn-sub" id="closetClose">もどる</button>
+    </div>
+  </section>
+
+  <section id="guide" class="overlay" hidden>
+    <div class="sheet">
+      <div class="sheet-head"><b>お品書き</b><span>あそびかた</span></div>
+      <p class="g-rule">寿司を <b>8貫</b> VIPに届けるとクリア。ライフは <b>3つ</b>（大型イベントをノーダメージで抜けると +1）。寿司の数・種類・残りライフ・タイムで評価が決まる。</p>
+      <h3>ネタ<small>取ると1貫＋変身</small></h3><div class="g-list" id="gNeta"></div>
+      <h3>いいもの</h3><div class="g-list" id="gGood"></div>
+      <h3 class="bad">だめなもの<small>ぶつかるとライフ−1・寿司を少し落とす</small></h3><div class="g-list" id="gBad"></div>
+      <button class="btn-sub" id="guideClose">もどる</button>
     </div>
   </section>
 
@@ -551,7 +577,7 @@ const EVENTS = {
   // STAGE 3（天空の回転寿司タワー）
   saradisc: { name: '飛び皿の嵐',          hint: '滑ってくる皿はジャンプ！', tier: 1, dur: 5.8 },
   rspin:   { name: '大回転皿',             hint: 'リズムよくジャンプ！',     tier: 2, dur: 6.0 },
-  nigiri:  { name: '巨大職人の握り',       hint: '影の落ちる2レーンから逃げろ！', tier: 3, dur: 6.0 },
+  nigiri:  { name: '巨大職人の握り',       hint: '手は追ってくる！直前に逃げて、衝撃波はジャンプ！', tier: 3, dur: 7.4 },
 };
 
 // ===== ステージ設定 =====
@@ -1428,7 +1454,12 @@ class Game {
         for (let i = 0; i < 7; i++) at(0.8 + i * 0.72, () => this.addStrike('rspin', [-1, 0, 1], 0.7, 0.2, 0, 0.9, { dir: i % 2 ? -1 : 1 }));
         break;
       case 'nigiri':
-        [0.8, 1.8, 2.7, 3.5, 4.3, 5.1].forEach(t => at(t, () => { const l = p.lane; this.addStrike('nigiri', [l, adj(l)], 0.85, 0.16, 0, 5); }));
+        // 手は予告中ずっとプレイヤーのレーンを追い、たたく0.5秒前に止まる。1回おきに衝撃波（ジャンプ）
+        // 衝撃波は2回目と5回目の後だけ。その次の手は少し間を空け、「跳ぶ→着地→逃げる」の順に処理できるようにする
+        [0.8, 1.8, 3.15, 4.05, 4.95, 6.2].forEach((t, i) => at(t, () => {
+          const l = p.lane, side = l === 0 ? (rnd() < 0.5 ? -1 : 1) : -l;
+          this.addStrike('nigiri', [l, l + side], 0.95, 0.16, 0, 5, { track: true, side, shock: i === 1 || i === 4 });
+        }));
         break;
       case 'houchou':
         at(0.8, () => this.addStrike('chop', [p.lane], 0.85, 0.14, 0, 5));
@@ -1555,11 +1586,18 @@ class Game {
     for (let i = this.strikes.length - 1; i >= 0; i--) {
       const st = this.strikes[i];
       st.t += h;
+      // 追ってくる手：たたく0.5秒前まで、プレイヤーのレーンに合わせて2レーンを狙い直す
+      if (st.track && st.t < st.warn - 0.5 && st.lanes[0] !== p.lane) {
+        const l = p.lane, side = l + st.side >= -1 && l + st.side <= 1 ? st.side : -st.side;
+        st.lanes = [l, l + side];
+      }
       const active = st.t >= st.warn && st.t < st.warn + st.active;
       if (active) {
         if (!st.checked) {
           st.checked = true;
           this.emit('strikeHit', { id: st.id, kind: st.kind });
+          // 床をたたいた衝撃波が全レーンに走る（ジャンプで越える）
+          if (st.shock) this.addStrike('shock', [-1, 0, 1], 0.6, 0.16, 0, 0.8, { cx: st.lanes[0] * C.LANE_W });
           // 直前に避けていたら「ギリギリ！」
           if (!this.strikeOverlap(st, pH) && this.time - p.lastLaneT < 0.3 && st.lanes.indexOf(p.prevLane) >= 0) this.nearMiss(st);
         }
@@ -3941,6 +3979,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') input.keys.shift = true;
   if (e.repeat) return;
   if (mode === 'title' && closetOpen) { if (e.code === 'Escape') openCloset(false); return; }
+  if (mode === 'title' && !ui.guide.hidden) { if (e.code === 'Escape') openGuide(false); return; }
   if (mode === 'title' && (e.code === 'Enter' || e.code === 'Space')) { startRun(); return; }
   if (mode === 'goal' && goal && ['Space', 'Enter', 'ArrowUp', 'KeyW', 'KeyJ', 'KeyK'].includes(e.code)) {
     if (goal.phase === 'run') festTap();
@@ -4314,7 +4353,7 @@ function makeHand() {
   g.add(mesh(new THREE.CylinderGeometry(0.65, 0.7, 1.6, 12).rotateX(Math.PI / 2).translate(0, 0.1, 1.4), M.white));
   return g;
 }
-const BAND_KINDS = { koiLow: 1, koiHigh: 1, rspin: 1 };
+const BAND_KINDS = { koiLow: 1, koiHigh: 1, rspin: 1, shock: 1 };
 function makeStrikeView(st) {
   const g = new THREE.Group();
   const v = { obj: g, st, lanes: [] };
@@ -4325,7 +4364,8 @@ function makeStrikeView(st) {
     band.material.color.set(st.kind === 'koiHigh' ? 0x3a8aff : 0xff7a1a);
     g.add(band); v.band = band;
     let obj;
-    if (st.kind === 'rspin') { obj = new THREE.Group(); obj.add(outline(mesh(new THREE.CylinderGeometry(2.4, 1.9, 0.28, 32), M.plate), 0.04), mesh(new THREE.TorusGeometry(2.3, 0.1, 6, 32).rotateX(Math.PI / 2), M.plateRim, 0, 0.14, 0)); obj.position.y = 0.4; }
+    if (st.kind === 'shock') { obj = new THREE.Group(); obj.add(mesh(new THREE.TorusGeometry(1, 0.22, 6, 40).rotateX(Math.PI / 2), toon(0xfffbf2, { flat: true, rim: 0xffe0a0, rimK: 0.6 }))); obj.position.set(st.cx || 0, 0.3, 0); band.material.color.set(0xffe066); }
+    else if (st.kind === 'rspin') { obj = new THREE.Group(); obj.add(outline(mesh(new THREE.CylinderGeometry(2.4, 1.9, 0.28, 32), M.plate), 0.04), mesh(new THREE.TorusGeometry(2.3, 0.1, 6, 32).rotateX(Math.PI / 2), M.plateRim, 0, 0.14, 0)); obj.position.y = 0.4; }
     else { obj = makeKoi(); obj.scale.setScalar(st.kind === 'koiLow' ? 0.8 : 0.9); obj.position.y = st.kind === 'koiLow' ? 0.45 : 1.55; }
     g.add(obj); v.mover = obj;
     return v;
@@ -4376,6 +4416,15 @@ function updateStrikeView(v, st, dt) {
   const after = st.t >= st.warn + st.active;
   const afterK = clamp((st.t - st.warn - st.active) / 0.6, 0, 1);
   const pulse = 0.5 + 0.5 * Math.sin(st.t * 30);
+  if (v.mover && st.kind === 'shock') {
+    // 衝撃波：手の落ちた所から輪が広がり、攻撃の瞬間に全レーンを覆う
+    v.band.material.opacity = after ? 0.3 * (1 - afterK) : 0.14 + pulse * 0.22 * warnK;
+    const u = clamp(st.t / (st.warn + st.active), 0, 1);
+    v.mover.visible = !after;
+    v.mover.scale.set(0.3 + u * 6, 1 + (act ? 0.6 : 0), 0.3 + u * 2.2);
+    if (Math.random() < 0.8) PN.spawn(v.obj.position.x + (st.cx || 0) + rand(-1, 1) * u * 5, 0.3, v.obj.position.z + rand(-0.5, 0.5), rand(-2, 2), rand(1, 3), 0, 0.4, rand(0.08, 0.14), col('#fffbf2'), { g: 8 });
+    return;
+  }
   if (v.mover) {
     // 横切る鯉・大回転皿：攻撃の瞬間にちょうど真ん中を通る
     v.band.material.opacity = after ? 0.3 * (1 - afterK) : 0.14 + pulse * 0.2 * warnK;
@@ -4426,6 +4475,8 @@ function updateStrikeView(v, st, dt) {
         burst(PA, x, 1, z, 12, 3, ['#fff0c0'], 2, 0.3);
       }
     } else if (o.hand) {
+      const li = v.lanes.indexOf(o);
+      if (st.lanes[li] != null) o.lg.position.x = damp(o.lg.position.x, st.lanes[li] * W, 12, dt);
       const y = after ? lerp(0.5, 7, afterK) : act ? 0.5 : lerp(7, 3.2, warnK) + Math.sin(st.t * 18) * 0.05;
       o.hand.position.y = y;
       if (act && !o.pressed) { o.pressed = true; puffs(v.obj.position.x + o.lg.position.x, 0.2, v.obj.position.z, 5, 0.8); }
@@ -4461,8 +4512,9 @@ function trainPos(i, out) {
 }
 
 // ===== 画面遷移 =====
-const ui = { title: $('#title'), pause: $('#pause'), result: $('#result'), hud: $('#hud'), closet: $('#closet') };
+const ui = { title: $('#title'), pause: $('#pause'), result: $('#result'), hud: $('#hud'), closet: $('#closet'), guide: $('#guide') };
 function showOnly(which) {
+  ui.guide.hidden = which !== 'guide';
   ui.closet.hidden = which !== 'closet';
   ui.title.hidden = which !== 'title';
   ui.pause.hidden = which !== 'pause';
@@ -4832,6 +4884,98 @@ $('#closetBtn').addEventListener('click', () => { Snd.init(); Snd.click(); openC
 $('#loadout').addEventListener('click', () => { Snd.init(); Snd.click(); openCloset(true); });
 $('#closetClose').addEventListener('click', () => { Snd.click(); openCloset(false); renderLoadout(); });
 
+// ===== あそびかた（お品書き） =====
+// 実際のモデルを小さく描いてアイコンにする（開いた時に一度だけ）
+let guideIcons = null;
+function renderGuideIcons() {
+  if (guideIcons) return guideIcons;
+  guideIcons = {};
+  let r;
+  try { r = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }); } catch (e) { return guideIcons; }
+  r.setPixelRatio(1); r.setSize(160, 120, false); r.setClearColor(0x000000, 0);
+  const sc = new THREE.Scene();
+  sc.add(new THREE.HemisphereLight(0xfff0dc, 0x6a3020, 1.3));
+  const dl = new THREE.DirectionalLight(0xffffff, 1.8); dl.position.set(3, 6, 5); sc.add(dl);
+  const cam = new THREE.PerspectiveCamera(30, 4 / 3, 0.05, 200);
+  const shot = (key, obj, view) => {
+    sc.add(obj);
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
+    const d = Math.max(sz.x, sz.y, sz.z) * 2.3 + 0.3;
+    const v = view || [0.55, 0.45, 0.8];
+    cam.position.set(c.x + d * v[0], c.y + d * v[1], c.z + d * v[2]); cam.lookAt(c);
+    r.render(sc, cam);
+    guideIcons[key] = r.domElement.toDataURL();
+    sc.remove(obj);
+  };
+  const ob = (kind, extra) => makeObstacle(Object.assign({ kind, lanes: [0], id: 1 }, extra || {})).obj;
+  try {
+    shot('bottle', ob('bottle')); shot('plates', ob('plates')); shot('cup', ob('cup'));
+    shot('noren', ob('noren'), [0.2, 0.2, 1]); shot('nori', ob('nori'), [0.3, 0.2, 1]);
+    shot('wasabi', ob('wasabi'), [0.3, 0.3, 1]); shot('puddle', ob('puddle'), [0.3, 0.9, 0.7]);
+    shot('gap', ob('gap'), [0.4, 1.1, 0.6]); { const sm = ob('shamoji'); sm.children.filter(c => c.isSprite).forEach(c => sm.remove(c)); shot('shamoji', sm, [0.5, 0.7, 0.8]); }
+    shot('roll', ob('cup', { roll: true }));
+    shot('gari', new THREE.Mesh(gariGeo, gomaMesh.material), [0.3, 0.6, 0.8]);
+    shot('heart', new THREE.Mesh(goldMesh.geometry, goldMesh.material), [0, 0.1, 1]);
+    const drop = makeSushi('salmon', 'lo', true); drop.root.rotation.y = Math.PI; shot('drop', drop.root, [0.4, 0.4, 1]);
+  } catch (e) { /* 描けなくても文字だけで表示 */ }
+  r.dispose(); try { r.forceContextLoss(); } catch (e) { /* 無視 */ }
+  return guideIcons;
+}
+const GUIDE = {
+  neta: [
+    ['ebi', 'エビ', '大ジャンプ（8秒）。皿の山も跳び越せる'],
+    ['salmon', 'サーモン', 'どこでもドリフト（8秒）。ミニブーストが溜まりやすい'],
+    ['maguro', 'マグロ', '無敵ダッシュ（3.5秒）。障害物をはね飛ばす'],
+    ['ika', 'イカ', '吸い寄せ（8秒）。ガリとネタを引き寄せ、醤油でも回らない'],
+    ['ikura', 'イクラ', '連鎖バースト（4秒）。前の低い障害物を爆破'],
+    ['tamago', '玉子', '1回ガード。ぶつかるまで続く'],
+  ],
+  good: [
+    ['gari', 'ガリ', '取るとガリゲージが溜まる（ドリフト・斬撃・ギリギリ回避でも溜まる）'],
+    ['awaken', 'ガリ覚醒', 'ゲージ満タンで右下のボタン（PCはE）。3.5秒間：無敵／スピード1.4倍／障害物を粉砕／ガリと落とした寿司を全レーンから吸い寄せ'],
+    ['heart', '金のハート', 'ライフ +1。しゃもじの大ジャンプの頂上にある'],
+    ['shamoji', 'しゃもじ', '乗ると大ジャンプ。着地すると加速'],
+    ['drop', '落とした寿司', 'ぶつかると前に散らばる。拾い直せる'],
+  ],
+  bad: [
+    ['bottle', '醤油ボトル', 'よける。倒れて醤油をこぼすことも'],
+    ['plates', '皿の山', 'よける（エビなら跳び越せる）'],
+    ['cup', '湯のみ', 'ジャンプ'],
+    ['noren', 'のれん', 'しゃがむ（下スワイプ／S）'],
+    ['nori', '海苔の壁', '斬る（タップ／Space）'],
+    ['wasabi', 'わさびモンスター', '寄ってくる。直前によけるか跳ぶ'],
+    ['roll', '転がる湯のみ', '途中でレーンを変える。最後まで見る'],
+    ['puddle', '醤油だまり', 'クルクル回る。タップで立て直し'],
+    ['gap', '床の切れ目', 'ジャンプ（STAGE 3）'],
+  ],
+};
+function openGuide(v) {
+  const el = $('#guide');
+  if (v && !el.dataset.built) {
+    el.dataset.built = '1';
+    const icons = renderGuideIcons();
+    const fill = (id, rows, iconOf) => {
+      const box = $(id);
+      rows.forEach(([key, name, text]) => {
+        const d = document.createElement('div'); d.className = 'g-row';
+        d.innerHTML = '<img alt=""><div><b></b><span></span></div>';
+        const src = iconOf(key);
+        if (src) d.querySelector('img').src = src; else d.querySelector('img').remove();
+        d.querySelector('b').textContent = name; d.querySelector('span').textContent = text;
+        box.appendChild(d);
+      });
+    };
+    fill('#gNeta', GUIDE.neta, k => ICON[k]);
+    fill('#gGood', GUIDE.good, k => icons[k === 'awaken' ? 'gari' : k]);
+    fill('#gBad', GUIDE.bad, k => icons[k]);
+  }
+  showOnly(v ? 'guide' : 'title');
+  if (v) el.querySelector('.sheet').scrollTop = 0;
+}
+$('#guideBtn').addEventListener('click', () => { Snd.init(); Snd.click(); openGuide(true); });
+$('#guideClose').addEventListener('click', () => { Snd.click(); openGuide(false); });
+
 // ===== ゲームイベントの演出 =====
 function handleEvents(g) {
   const p = g.p;
@@ -5055,7 +5199,7 @@ function handleEvents(g) {
         else toast('突破！', 'gold');
         chef.visible = false; bigWasabi.visible = false; bigBottle.visible = false;
         break;
-      case 'strike': Snd.warn(); if (ev.kind === 'sweep') toast('↓ しゃがめ！', 'shu'); break;
+      case 'strike': if (ev.kind === 'shock') { toast('ジャンプ！', 'gold', '衝撃波が来る'); Snd.warn(); break; } Snd.warn(); if (ev.kind === 'sweep') toast('↓ しゃがめ！', 'shu'); break;
       case 'strikeHit': Snd.strike(ev.kind); shake = Math.max(shake, ev.kind === 'chop' ? 0.3 : 0.15); break;
       case 'tip': { Snd.splash ? Snd.splash() : Snd.splat(); const v = views.get(ev.id); if (v) { puffs(v.obj.position.x, 0.5, v.obj.position.z, 3, 0.6); } if (!store.get('tipTaught', false)) { store.set('tipTaught', true); toast('醤油がこぼれた！', 'shu', '踏むとクルクル回る'); } } break;
       case 'swerve': Snd.lane(); break;
